@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+
+bin=`dirname "$0"`
+bin=`cd "$bin"; pwd`
+
+. "${bin}"/../bin/drone-env.sh
+
+# if no args specified, show usage
+if [ $# = 0 ]; then
+  echo "Usage: drone COMMAND"
+  echo "where COMMAND is one of:"
+  echo "  webserver     run webserver"
+  exit 1
+fi
+
+# get arguments
+COMMAND=$1
+shift
+
+# some Java parameters
+if [ "$JAVA_HOME" != "" ]; then
+  #echo "run java in $JAVA_HOME"
+  JAVA_HOME=$JAVA_HOME
+fi
+  
+if [ "$JAVA_HOME" = "" ]; then
+  echo "Error: JAVA_HOME is not set."
+  exit 1
+fi
+
+JAVA=$JAVA_HOME/bin/java
+
+CLASSPATH=${DRONE_HOME}/conf:${HADOOP_HOME}/conf
+CLASSPATH=${CLASSPATH}:${JAVA_HOME}/lib/tools.jar
+
+for f in $DRONE_HOME/gruter-drone-*.jar; do  
+	CLASSPATH=${CLASSPATH}:$f;
+done
+
+for f in $DRONE_HOME/lib/jetty/jsp/*.jar; do 
+    CLASSPATH=${CLASSPATH}:$f;
+done
+
+for f in $DRONE_HOME/lib/*.jar; do  
+	CLASSPATH=${CLASSPATH}:$f;
+done
+
+for f in $DRONE_HOME/lib/jetty/*.jar; do  
+	CLASSPATH=${CLASSPATH}:$f;
+done
+
+for f in $HADOOP_HOME/hadoop-*.jar; do  
+	CLASSPATH=${CLASSPATH}:$f;
+done
+
+# default log directory & file
+if [ "$DRONE_LOG_DIR" = "" ]; then
+  DRONE_LOG_DIR="$DRONE_HOME/logs"
+fi
+if [ "$DRONE_LOGFILE" = "" ]; then
+  DRONE_LOGFILE='drone.log'
+fi
+
+# restore ordinary behaviour
+unset IFS
+
+# figure out which class to run
+if [ "$COMMAND" = "webserver" ] ; then
+  CLASS='com.gruter.drone.common.DroneWebServer'
+  DRONE_OPTS="$DRONE_OPTS $DRONE_WEBSERVER_OPTS"
+else
+  CLASS=$COMMAND
+fi
+
+DRONE_OPTS="$DRONE_OPTS -Ddrone.log.dir=$DRONE_LOG_DIR"
+DRONE_OPTS="$DRONE_OPTS -Ddrone.log.file=$DRONE_LOGFILE"
+DRONE_OPTS="$DRONE_OPTS -Ddrone.home.dir=$DRONE_HOME"
+DRONE_OPTS="$DRONE_OPTS -Ddrone.id.str=$DRONE_IDENT_STRING"
+DRONE_OPTS="$DRONE_OPTS -Ddrone.root.logger=${DRONE_ROOT_LOGGER:-INFO,console}"
+
+# run it
+exec "$JAVA" $DRONE_OPTS -classpath "$CLASSPATH" $CLASS "$@"

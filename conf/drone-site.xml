@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+        <property>
+                <name>drone.max.row</name>
+                <value>1000</value>
+                <description></description>
+        </property>
+
+        <property>
+                <name>drone.result.hdfs.path</name>
+                <value>/tmp/drone</value>
+                <description>hdfs, webserver user must have write permission</description>
+        </property>
+
+        <property>
+                <name>drone.query.result.store.time</name>
+                <value>4320</value>
+                <description>minute, period of cleaning query result</description>
+        </property>
+
+        <property>
+                <name>drone.query.concurrency</name>
+                <value>5</value>
+                <description>query thread concurrency</description>
+        </property>
+</configuration>

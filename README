@@ -1,0 +1,52 @@
+Drone
+=======
+Drone is an open source version of the hive query workbench. 
+Drone is licensed under the GPLv3
+(http://www.gnu.org/copyleft/gpl.html)
+
+Screen
+-------------------
+- http://www.gruter.com/download_files/drone-01.png
+
+Prerequisites
+-------------------
+JDK 1.6.x
+Hadoop 0.20.x or 1.0.x
+Hive
+MySQL
+ExtJS4(http://www.sencha.com/products/extjs)
+
+Installation
+-------------------
+Download https://github.com/downloads/gruter/drone/gruter-drone-bin-0.9.tar.gz
+    tar xzf gruter-drone-bin-0.9.tar.gz
+    cd gruter-drone
+	vi bin/drone-env.sh
+        change env variable
+    vi conf/settings.properties
+        database connection properties
+        
+     create table
+     	execute conf/table/hive.sql
+
+Start/Stop
+-------------------
+Start
+	${HIVE_HOME}/bin/hive --service hiveserver
+	bin/start-drone.sh [port]
+	http://127.0.0.1:8091
+
+Stop
+	bin/stop-drone.sh
+	
+Build
+-------------------
+webserver embedded version
+	mvn install assembly:single
+
+war version 
+	mvn install
+
+Source Code
+-------------------
+The Drone source code is hosted on GitHub: https://github.com/gruter/drone

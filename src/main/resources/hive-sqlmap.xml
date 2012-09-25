@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+    "http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="hiveSQL">
+	<typeAlias alias="hiveConnection" 		type="com.gruter.drone.model.HiveConnection" />
+	<typeAlias alias="hiveQueryCategory" 	type="com.gruter.drone.model.HiveQueryCategory" />
+	<typeAlias alias="hiveQuery" 			type="com.gruter.drone.model.HiveQuery" />
+	<typeAlias alias="queryTask" 			type="com.gruter.drone.model.QueryTask" />
+	<typeAlias alias="hiveUser" 			type="com.gruter.drone.model.HiveUser" />
+
+	<resultMap class="hiveConnection" id="hiveConnectionMap">
+		<result property="connectionName"  	column="CONNECTION_NAME" />
+		<result property="driverClass"  	column="DRIVER_CLASS" />
+		<result property="connectionUri"   	column="CONNECTION_URI" />
+		<result property="fileSystemUri"   	column="FILESYSTEM_URI" />
+		<result property="description" 		column="DESCRIPTION" />
+	</resultMap>
+	
+	<resultMap class="hiveQueryCategory" id="hiveQueryCategoryMap">
+		<result property="categoryName"  	column="CATEGORY_NAME" />
+		<result property="creatorName"   	column="CREATOR_NAME" />
+	</resultMap>
+
+	<resultMap class="hiveQuery" id="hiveQueryMap">
+		<result property="queryId"  		column="QUERY_ID" />
+		<result property="queryName"   		column="QUERY_NAME" />
+		<result property="categoryName"   	column="CATEGORY_NAME" />
+		<result property="query"   			column="QUERY" />
+		<result property="creatorName"   	column="CREATOR_NAME" />
+		<result property="createDate"   	column="CREATE_DATE" />
+		<result property="description" 		column="DESCRIPTION" />
+	</resultMap>
+	
+	<resultMap class="queryTask" id="queryTaskMap">
+		<result property="taskId"  			column="TASK_ID" />
+		<result property="userName"  		column="USER_NAME" />
+		<result property="errorMessage"  	column="ERROR_MESSAGE" />
+		<result property="finished"  		column="FINISHED" />
+		<result property="error"  			column="ERROR" />
+		<result property="status"  			column="STATUS" />
+		<result property="startTime"  		column="START_TIME" />
+		<result property="endTime"  		column="END_TIME" />
+		<result property="query"  			column="QUERY" />
+		<result property="connectionName"  	column="CONNECTION_NAME" />
+		<result property="resultPath"  		column="RESULT_PATH" />
+		<result property="saveResult"  		column="SAVE_RESULT" />
+	</resultMap>
+
+	<resultMap class="hiveUser" id="hiveUserMap">
+		<result property="userId"  		column="USER_ID" />
+		<result property="password"  	column="PASSWORD" />
+	</resultMap>
+		
+	<select id="listHiveConns" parameterClass="map" resultMap="hiveConnectionMap">
+		SELECT CONNECTION_NAME, DRIVER_CLASS, CONNECTION_URI, FILESYSTEM_URI, DESCRIPTION
+		  FROM HIVE_CONNECTION
+		 <dynamic prepend="Where">
+			<isNotEmpty  prepend="AND" property="connectionName">
+				CONNECTION_NAME = #connectionName#
+			</isNotEmpty>	
+		</dynamic>
+	</select>
+	  
+	<insert id="addHiveConn" parameterClass="hiveConnection">
+        INSERT 
+          INTO HIVE_CONNECTION (CONNECTION_NAME, DRIVER_CLASS, CONNECTION_URI, FILESYSTEM_URI, DESCRIPTION)
+		VALUES (#connectionName#, #driverClass#, #connectionUri#, #fileSystemUri#, #description#)
+	</insert>
+ 	
+	<update id="updateHiveConn" parameterClass="hiveConnection">
+		UPDATE HIVE_CONNECTION 
+		   SET DRIVER_CLASS = #driverClass#,
+		   	   CONNECTION_URI = #connectionUri#,
+		   	   FILESYSTEM_URI = #fileSystemUri#,
+		   	   DESCRIPTION = #description#
+		 WHERE CONNECTION_NAME = #connectionName#
+	</update>
+
+	<delete id="removeHiveConn" parameterClass="string">
+		DELETE FROM HIVE_CONNECTION
+		 WHERE CONNECTION_NAME = #connectionName#
+	</delete>
+	
+	<select id="selectHiveQuery" resultMap="hiveQueryMap" parameterClass="map">
+		SELECT QUERY_ID, QUERY_NAME, CATEGORY_NAME, QUERY, CREATOR_NAME, CREATE_DATE, DESCRIPTION
+		  FROM HIVE_QUERY
+		<dynamic prepend="WHERE">
+			<isNotEmpty property="categoryName">
+				CATEGORY_NAME = #categoryName#
+			</isNotEmpty>
+		</dynamic>	
+		 ORDER BY CATEGORY_NAME asc, QUERY_NAME asc
+	</select>
+	
+	<select id="selectHiveQueryOuter" resultMap="hiveQueryMap">
+		SELECT IFNULL(a.QUERY_ID, -1) as QUERY_ID, 
+		       IFNULL(a.QUERY_NAME, '') as QUERY_NAME, 
+		       b.CATEGORY_NAME, 
+		       IFNULL(a.QUERY, '') as QUERY, 
+		       '' as CREATOR_NAME, 
+		       now() as CREATE_DATE, 
+		       '' as DESCRIPTION
+		  FROM HIVE_QUERY a
+         RIGHT JOIN HIVE_QUERY_CATEGORY b ON a.CATEGORY_NAME = b.CATEGORY_NAME 
+		 ORDER BY b.CATEGORY_NAME asc, a.QUERY_NAME asc
+	</select>	
+	
+	<select id="findHiveQueryByName" resultMap="hiveQueryMap" parameterClass="string">
+		SELECT QUERY_ID, QUERY_NAME, CATEGORY_NAME, QUERY, CREATOR_NAME, CREATE_DATE, DESCRIPTION
+		  FROM HIVE_QUERY
+		 WHERE QUERY_NAME = #queryName# 
+	</select>
+		
+	<insert id="insertHiveQuery" parameterClass="hiveQuery">
+		INSERT INTO HIVE_QUERY (QUERY_NAME, CATEGORY_NAME, QUERY, CREATOR_NAME, CREATE_DATE, DESCRIPTION)
+		VALUES (#queryName#, #categoryName#, #query#, #creatorName#, #createDate#, #description#)
+	</insert>
+	
+	<insert id="updateHiveQuery" parameterClass="hiveQuery">
+		UPDATE HIVE_QUERY 
+		   SET QUERY_NAME = #queryName#, 
+		       CATEGORY_NAME = #categoryName#, 
+		       QUERY = #query#, 
+		       CREATOR_NAME = #creatorName#, 
+		       CREATE_DATE = #createDate#, 
+		       DESCRIPTION = #description#
+		 WHERE QUERY_ID = #queryId# 
+	</insert>
+
+	<delete id="deleteHiveQueryByCategory" parameterClass="string">
+		DELETE FROM HIVE_QUERY
+		 WHERE CATEGORY_NAME = #categoryName#
+	</delete>	
+
+	<delete id="deleteHiveQueryById" parameterClass="string">
+		DELETE FROM HIVE_QUERY
+		 WHERE QUERY_ID = #queryId#
+	</delete>	
+
+	<update id="renameHiveCategoryAllQuery" parameterClass="map">
+		UPDATE HIVE_QUERY
+		   SET CATEGORY_NAME = #newName#
+		 WHERE CATEGORY_NAME = #oldName#
+	</update>	
+	
+	<select id="selectHiveQueryCategory" resultMap="hiveQueryCategoryMap">
+		SELECT CATEGORY_NAME, CREATOR_NAME
+		  FROM HIVE_QUERY_CATEGORY
+		 ORDER BY CATEGORY_NAME asc
+	</select>
+	
+	<insert id="insertHiveQueryCategory" parameterClass="hiveQueryCategory">
+		INSERT INTO HIVE_QUERY_CATEGORY (CATEGORY_NAME, CREATOR_NAME)
+		 VALUE (#categoryName#, #creatorName#) 
+	</insert>
+
+	<update id="renameHiveQueryCategory" parameterClass="map">
+		UPDATE HIVE_QUERY_CATEGORY
+		   SET CATEGORY_NAME = #newName#
+		 WHERE CATEGORY_NAME = #oldName#
+	</update>	
+
+	<delete id="deleteHiveQueryCategory" parameterClass="string">
+		DELETE FROM HIVE_QUERY_CATEGORY
+		 WHERE CATEGORY_NAME = #categoryName#
+	</delete>	
+	
+	<insert id="insertQueryTask" parameterClass="queryTask">
+		INSERT INTO QUERY_TASK 
+			(TASK_ID, USER_NAME, ERROR_MESSAGE, FINISHED, ERROR, STATUS, START_TIME, END_TIME, QUERY, CONNECTION_NAME, RESULT_PATH, SAVE_RESULT)
+		VALUES ( #taskId#, #userName#, #errorMessage#, #finished#, #error#, #status#, #startTime#, #endTime#, #query#, #connectionName#, #resultPath#, #saveResult#) 
+	</insert>
+
+	<update id="updateQueryTask" parameterClass="queryTask">
+		UPDATE QUERY_TASK
+		   SET  USER_NAME = #userName#, 
+		   		ERROR_MESSAGE = #errorMessage#, 
+		   		FINISHED = #finished#, 
+		   		ERROR = #error#, 
+		   		STATUS = #status#, 
+		   		START_TIME = #startTime#, 
+		   		END_TIME = #endTime#, 
+		   		QUERY = #query#,
+		   		CONNECTION_NAME = #connectionName#
+		  WHERE TASK_ID = #taskId#
+	</update>
+
+	<delete id="deleteQueryTask" parameterClass="string">
+		DELETE FROM QUERY_TASK
+		 WHERE TASK_ID = #taskId#
+	</delete>
+
+	<select id="getQueryTask" parameterClass="string" resultMap="queryTaskMap">
+		SELECT TASK_ID, USER_NAME, ERROR_MESSAGE, FINISHED, ERROR, STATUS, START_TIME, END_TIME, QUERY, CONNECTION_NAME, RESULT_PATH, SAVE_RESULT
+		  FROM QUERY_TASK
+		 WHERE TASK_ID = #taskId#
+	</select>
+  
+  	<select id="getQueryTasksByName" parameterClass="map" resultMap="queryTaskMap">
+  		SELECT TASK_ID, USER_NAME, ERROR_MESSAGE, FINISHED, ERROR, STATUS, START_TIME, END_TIME, QUERY, CONNECTION_NAME, RESULT_PATH, SAVE_RESULT
+		  FROM QUERY_TASK
+		 <dynamic prepend="Where">
+			<isNotEmpty  prepend="AND" property="userName">
+				USER_NAME = #userName#
+			</isNotEmpty>	
+		</dynamic>		  
+	</select>
+
+	<select id="getHiveUser" parameterClass="string" resultMap="hiveUserMap">
+		SELECT USER_ID, PASSWORD
+		  FROM HIVE_USER
+		 WHERE USER_ID = #userId#
+	</select>
+	
+	<select id="getPassword" parameterClass="string" resultClass="string">
+		SELECT a.pwd FROM (SELECT PASSWORD(#password#) as pwd FROM DUAL) as a;
+	</select>
+</sqlMap>
