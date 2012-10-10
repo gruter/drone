@@ -29,9 +29,9 @@ Download https://github.com/downloads/gruter/drone/gruter-drone-bin-0.9.tar.gz
     create table
      	execute conf/table/hive.sql
 
-	copy extjs
-		download extjs
-		copy extjs to "src/main/webapp/resources/extjs"
+    copy extjs
+        download extjs
+        copy extjs to "src/main/webapp/resources/extjs"
 
 Start/Stop
 -------------------
