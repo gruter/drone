@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ include file="taglibs.jsp"%>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
-<title>nexr::drone</title>
+<title>drone</title>
 <!--link rel="shortcut icon" type="image/x-icon" href="<c:url value='/resources/images/icons/favicon.ico'/>" /-->
 <!-- Ext -->
 <link rel="stylesheet" type="text/css" href="<c:url value='/resources/extjs/resources/css/ext-all.css'/>">
